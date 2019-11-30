@@ -16,7 +16,7 @@ PYINSTALLER_KWARGS = {
     '--noconfirm': {
         'checked': True,
         'type': bool,
-        'msg': 'Where to put all the temporary work files, .log, .pyz and etc. (default: ./build)',
+        'msg': 'Where to put all the temporary work files. (default: ./build)',
     },
     '--onefile': {
         'type': bool,
@@ -28,15 +28,15 @@ PYINSTALLER_KWARGS = {
     },
     '--icon': {
         'type': str,
-        'msg': 'FILE.ico: apply that icon to an executable.',
+        'msg': 'FILE.ico: apply that icon to an executable',
     },
     '--windowed': {
         'type': bool,
-        'msg': 'On Windows this option will be set if the first script is a ‘.pyw’ file.',
+        'msg': 'Run without console.',
     },
     '--key': {
         'type': str,
-        'msg': 'The key used to encrypt Python bytecode.',
+        'msg': 'The key used to encrypt Python bytecode',
     },
     '--paths': {
         'type': str,
@@ -44,11 +44,11 @@ PYINSTALLER_KWARGS = {
     },
     '--add-data': {
         'type': str,
-        'msg': 'Additional non-binary files or folders to be added to the executable.',
+        'msg': 'Additional non-binary files or folders to be added to the executable',
     },
     '--add-binary': {
         'type': str,
-        'msg': 'Additional binary files to be added to the executable.',
+        'msg': 'Additional binary files to be added to the executable',
     },
     '--upx-dir': {
         'type': str,
@@ -64,11 +64,11 @@ PYINSTALLER_KWARGS = {
     },
     '--log-level': {
         'type': str,
-        'msg': 'Amount of detail in build-time console messages.',
+        'msg': 'Amount of detail in build-time console messages',
     },
     '[Custom]': {
         'type': str,
-        'msg': 'Input some custom args of pyinstaller.',
+        'msg': 'Input some custom args of pyinstaller',
     },
 }
 
@@ -380,7 +380,7 @@ def ask_for_args(venv, script_path, cwd, cache_path):
     choices = []
     for key, value in PYINSTALLER_KWARGS.items():
         item = {
-            'name': f'{key} | {value["msg"]}',
+            'name': f'{key: <12} | {value["msg"]}',
             'checked': value.get('checked', False)
         }
         choices.append(item)
@@ -390,8 +390,9 @@ def ask_for_args(venv, script_path, cwd, cache_path):
         'name': 'name',
         'choices': choices
     })['name']
+    ajust_path = {'--distpath','--icon','--add-data','--add-binary','--upx-dir'}
     for choice in tmp:
-        key = choice.split(' | ')[0]
+        key = choice.split(' | ')[0].strip()
         item = PYINSTALLER_KWARGS[key]
         if item['type'] == bool:
             args.append(key)
@@ -402,6 +403,9 @@ def ask_for_args(venv, script_path, cwd, cache_path):
                 'message': f'Input the {key} arg:\n{item["msg"]}',
             })['name'].strip()
             if value:
+                if key in ajust_path:
+                    # update \ to /
+                    value = Path(value).as_posix()
                 args.append(key)
                 args.append(value)
         elif key == '[Custom]':
