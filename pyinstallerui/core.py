@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.2'
+__version__ = '0.0.3'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
