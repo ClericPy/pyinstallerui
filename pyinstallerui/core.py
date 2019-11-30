@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -308,7 +308,7 @@ def prepare_pip(venv):
                     'name': 'name',
                     'message': 'Fill text for `pip install ` (null for exit):',
                     'default': 'pip install '
-                })['name'].strip()
+                })['name']
                 if cmd == 'pip install ':
                     break
                 venv.pip_install(cmd=cmd)
@@ -319,7 +319,7 @@ def prepare_pip(venv):
                     'name': 'name',
                     'message': 'Fill text for `pip uninstall -y ` (null for exit):',
                     'default': 'pip uninstall -y '
-                })['name'].strip()
+                })['name']
                 if cmd == 'pip uninstall -y ':
                     break
                 venv.pip_uninstall(cmd=cmd)
@@ -330,7 +330,7 @@ def prepare_pip(venv):
                     'name': 'name',
                     'message': 'Fill text for `pip ` (null for exit):',
                     'default': 'pip '
-                })['name'].strip()
+                })['name']
                 if cmd == 'pip ':
                     break
                 venv.pip_custom(cmd=cmd)
@@ -359,7 +359,7 @@ def ask_script_cwd_path(venv, script_path, cwd):
             'name': 'name',
             'message': 'Input cwd path:',
             'default': str(cwd),
-        })['name'].strip()
+        })['name']
     cwd = Path(cwd.strip())
     return script_path, cwd
 
@@ -402,7 +402,7 @@ def ask_for_args(venv, script_path, cwd, cache_path):
             value = prompt({
                 'type': 'input',
                 'name': 'name',
-                'message': f'Input the {key} arg:\n{item["msg"]}',
+                'message': f'Input the {key} arg:\n{item["msg"]}\n',
             })['name'].strip()
             if value:
                 if re.match(r'^".*"$', value):
@@ -414,7 +414,7 @@ def ask_for_args(venv, script_path, cwd, cache_path):
                 value = prompt({
                     'type': 'input',
                     'name': 'name',
-                    'message': f'Input the args one by one, could not include `space` (null to exit):',
+                    'message': f'Input the args one by one (null to exit):\n',
                 })['name'].strip()
                 if not value:
                     break
