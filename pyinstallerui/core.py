@@ -390,7 +390,6 @@ def ask_for_args(venv, script_path, cwd, cache_path):
         'name': 'name',
         'choices': choices
     })['name']
-    ajust_path = {'--distpath','--icon','--add-data','--add-binary','--upx-dir'}
     for choice in tmp:
         key = choice.split(' | ')[0].strip()
         item = PYINSTALLER_KWARGS[key]
@@ -403,9 +402,8 @@ def ask_for_args(venv, script_path, cwd, cache_path):
                 'message': f'Input the {key} arg:\n{item["msg"]}',
             })['name'].strip()
             if value:
-                if key in ajust_path:
-                    # update \ to /
-                    value = Path(value).as_posix()
+                if re.match(r'^".*"$', value):
+                    value = value[1:-1]
                 args.append(key)
                 args.append(value)
         elif key == '[Custom]':
