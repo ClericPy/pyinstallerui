@@ -9,6 +9,8 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
+__version__ = '0.0.2'
+
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
 CWD = os.getcwd()
@@ -243,6 +245,7 @@ def prepare_venv():
     venvs = Venvs()
     new_venv = '[Create New Venv]'
     rm_venv = '[Remove Venv]'
+    print(f'[Venv path]: {venvs.GLOBAL_VENV_PATH}\n{"-" * 40}')
     while 1:
         choices = [new_venv, rm_venv] + venvs.list_venvs()
         name = prompt({
@@ -464,6 +467,7 @@ def prepare_test_pyinstaller(venv):
 
 
 def main():
+    print(f'{"=" * 40}\nPyinstaller UI v{__version__}\n{"=" * 40}')
     # Prepare for venv
     venv = prepare_venv()
     # Prepare for pip
