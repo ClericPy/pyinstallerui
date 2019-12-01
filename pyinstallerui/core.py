@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -123,7 +123,8 @@ class Venvs(object):
 
 class Venv(object):
     pip_action_choices = [
-        'No action', 'Install', 'Uninstall', 'Custom(input raw `pip` command)'
+        'No action', 'Install', 'Uninstall', 'List',
+        'Custom(input raw `pip` command)'
     ]
 
     def __init__(self, name):
@@ -220,6 +221,10 @@ class Venv(object):
         cmd = f'{self.pip_path} {cmd[4:]}'
         os.system(cmd)
 
+    def pip_list(self, timeout=300):
+        cmd = f'{self.pip_path} list'
+        os.system(cmd)
+
     def pip_custom(self, cmd, timeout=300):
         if not cmd.startswith('pip '):
             print('pip command should startswith `pip `')
@@ -247,19 +252,23 @@ class Venv(object):
 
 
 def prepare_venv():
+    venv = None
     venvs = Venvs()
     new_venv = '[Create New Venv]'
     rm_venv = '[Remove Venv]'
+    exit_choice = '[Exit]'
     print(f'[Venv path]: {venvs.GLOBAL_VENV_PATH}\n{"-" * 40}')
     while 1:
-        choices = [new_venv, rm_venv] + venvs.list_venvs()
+        choices = [new_venv, rm_venv, exit_choice] + venvs.list_venvs()
         name = prompt({
             'type': 'list',
             'name': 'name',
             'message': 'Choose a venv by name, or create a new one:',
             'choices': choices
         })['name']
-        if name == rm_venv:
+        if name == exit_choice:
+            break
+        elif name == rm_venv:
             while 1:
                 name = prompt({
                     'type': 'list',
@@ -329,6 +338,8 @@ def prepare_pip(venv):
                     break
                 venv.pip_uninstall(cmd=cmd)
         elif index == 3:
+            venv.pip_list()
+        elif index == 4:
             while 1:
                 cmd = prompt({
                     'type': 'input',
@@ -472,15 +483,24 @@ def prepare_test_pyinstaller(venv):
                 clean_folder(cache_path)
 
 
-def main():
+def _main():
     print(f'{"=" * 40}\nPyinstaller UI v{__version__}\n{"=" * 40}')
     # Prepare for venv
     venv = prepare_venv()
+    if not venv:
+        return
     # Prepare for pip
     prepare_pip(venv)
     # Prepare for PyInstaller / python test
     prepare_test_pyinstaller(venv)
     return venv
+
+
+def main():
+    try:
+        _main()
+    except KeyboardInterrupt:
+        return
 
 
 if __name__ == '__main__':
