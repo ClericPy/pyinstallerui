@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -86,6 +86,11 @@ def clean_folder(path):
 def delete_folder(path):
     clean_folder(path)
     path.rmdir()
+
+
+def strip_quote(path):
+    # return re.sub(r'^\s*[\'"](.*?)[\'"]\s*$', r'\1', path)
+    return re.sub(r'(^[\'"\s]+|[\'"\s]+$)', r'', path)
 
 
 def run(args, timeout=60, print_output=True, **kwargs):
@@ -345,7 +350,8 @@ def ask_script_cwd_path(venv, script_path, cwd):
     })['name'].strip()
     if not script_path:
         return [None, None]
-    script_path = Path(script_path.strip())
+    script_path = strip_quote(script_path)
+    script_path = Path(script_path)
 
     cwd = prompt({
         'type': 'list',
@@ -359,8 +365,9 @@ def ask_script_cwd_path(venv, script_path, cwd):
             'name': 'name',
             'message': 'Input cwd path:',
             'default': str(cwd),
-        })['name']
-    cwd = Path(cwd.strip())
+        })['name'].strip()
+    cwd = strip_quote(cwd)
+    cwd = Path(cwd)
     return script_path, cwd
 
 
@@ -405,8 +412,7 @@ def ask_for_args(venv, script_path, cwd, cache_path):
                 'message': f'Input the {key} arg:\n{item["msg"]}\n',
             })['name'].strip()
             if value:
-                if re.match(r'^".*"$', value):
-                    value = value[1:-1]
+                value = strip_quote(value)
                 args.append(key)
                 args.append(value)
         elif key == '[Custom]':

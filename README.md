@@ -11,7 +11,7 @@ Let everyone is able to build python script to exe with pyinstaller, without any
 - [x] Ensure pip installed in the venvs
 - [x] Terminal UI for pyinstaller
 - [x] Release on the pypi
-- [x] Release the exe file of this lib
+- [ ] Release `exe` file of this lib
 - [x] Open source from private repository
 
 
