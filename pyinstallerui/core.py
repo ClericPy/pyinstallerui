@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -112,11 +112,13 @@ class Venvs(object):
         if not self.GLOBAL_VENV_PATH.is_dir():
             self.GLOBAL_VENV_PATH.mkdir()
 
-    def list_venvs(self):
-        return [i.name for i in self.GLOBAL_VENV_PATH.iterdir() if i.is_dir()]
+    @classmethod
+    def list_venvs(cls):
+        return [i.name for i in cls.GLOBAL_VENV_PATH.iterdir() if i.is_dir()]
 
-    def rm_venv(self, name):
-        path = self.GLOBAL_VENV_PATH / name
+    @classmethod
+    def rm_venv(cls, name):
+        path = cls.GLOBAL_VENV_PATH / name
         if path.is_dir():
             delete_folder(path)
 
@@ -274,9 +276,9 @@ def prepare_venv():
                     'type': 'list',
                     'name': 'name',
                     'message': 'Choose a name to remove:',
-                    'choices': ['Exit'] + venvs.list_venvs()
+                    'choices': ['[Exit]'] + venvs.list_venvs()
                 })['name']
-                if name == 'Exit':
+                if name == '[Exit]':
                     break
                 print('Venv Removing...')
                 venvs.rm_venv(name)
@@ -496,6 +498,14 @@ def prepare_test_pyinstaller(venv):
             'default': True,
         })['name']
         if is_quit:
+            is_del_venv = prompt({
+                'type': 'confirm',
+                'message': f'Remove the `{venv.name}` venv?',
+                'name': 'name',
+                'default': False,
+            })['name']
+            if is_del_venv:
+                Venvs.rm_venv(venv.name)
             quit()
 
 
