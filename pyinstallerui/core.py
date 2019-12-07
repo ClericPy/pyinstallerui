@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -26,11 +26,11 @@ PYINSTALLER_KWARGS = {
     },
     '--distpath': {
         'type': str,
-        'msg': 'Where to put the bundled app (default: ./dist)',
+        'msg': 'Where to put the bundled app (default: ./dist).',
     },
     '--icon': {
         'type': str,
-        'msg': 'FILE.ico: apply that icon to an executable',
+        'msg': 'FILE.ico or FILE.exe,ID or FILE.icns.',
     },
     '--windowed': {
         'type': bool,
@@ -439,6 +439,10 @@ def ask_for_args(venv, script_path, cwd, cache_path):
     return args
 
 
+def print_sep(size=40, sig='='):
+    print(sig * size, flush=1)
+
+
 def prepare_test_pyinstaller(venv):
     script_path, cwd = ['', '']
     while 1:
@@ -461,8 +465,11 @@ def prepare_test_pyinstaller(venv):
         if choice == 'Exit':
             break
         elif choice == 'Test':
+            print(f'Testing python script at {cwd}:')
+            print_sep()
             # python xxx.py
             venv.run(script_path, cwd)
+            print_sep()
         elif choice == 'Build':
             # pyinstaller xxx.py
             if not venv.check_pyinstaller():
@@ -471,7 +478,8 @@ def prepare_test_pyinstaller(venv):
             if not cache_path.is_dir():
                 cache_path.mkdir()
             args = ask_for_args(venv, script_path, cwd, cache_path)
-            print(f'Run python script at {cwd}:\n{list2cmdline(args)}')
+            print_sep()
+            print(f'Building python script at {cwd}:\n{list2cmdline(args)}')
             run(args, cwd=cwd)
             clean = prompt({
                 'type': 'confirm',
@@ -481,6 +489,14 @@ def prepare_test_pyinstaller(venv):
             })['name']
             if clean:
                 clean_folder(cache_path)
+        is_quit = prompt({
+            'type': 'confirm',
+            'message': 'Quit?',
+            'name': 'name',
+            'default': True,
+        })['name']
+        if is_quit:
+            quit()
 
 
 def _main():
