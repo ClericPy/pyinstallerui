@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.0.9'
+__version__ = '0.1.0'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -24,10 +24,6 @@ PYINSTALLER_KWARGS = {
         'type': bool,
         'msg': 'Create a one-file bundled executable.',
     },
-    '--distpath': {
-        'type': str,
-        'msg': 'Where to put the bundled app (default: ./dist).',
-    },
     '--icon': {
         'type': str,
         'msg': 'FILE.ico or FILE.exe,ID or FILE.icns.',
@@ -35,6 +31,10 @@ PYINSTALLER_KWARGS = {
     '--windowed': {
         'type': bool,
         'msg': 'Run without console.',
+    },
+    '--distpath': {
+        'type': str,
+        'msg': 'Where to put the bundled app (default: ./dist).',
     },
     '--key': {
         'type': str,
