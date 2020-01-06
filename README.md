@@ -1,5 +1,5 @@
 
-# PyinstallerUI
+# PyinstallerUI v0.1.1
 
 Let everyone is able to build python script to exe with pyinstaller, without any doc reading, support python3.7+.
 
