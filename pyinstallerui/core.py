@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PyInquirer import prompt
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -487,7 +487,7 @@ def prepare_test_pyinstaller(venv):
                 'type': 'confirm',
                 'message': 'Clean the cache files?',
                 'name': 'name',
-                'default': True,
+                'default': False,
             })['name']
             if clean:
                 clean_folder(cache_path)
