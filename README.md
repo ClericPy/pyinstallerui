@@ -1,5 +1,5 @@
 
-# PyinstallerUI v0.1.1
+# PyinstallerUI v0.2.0
 
 Let everyone is able to build python script to exe with pyinstaller, without any doc reading, support python3.7+.
 
@@ -13,6 +13,7 @@ Let everyone is able to build python script to exe with pyinstaller, without any
 - [x] Release on the pypi
 - [x] Open source from private repository
 - [ ] ~~Release `exe` file of this lib~~
+- [x] Use `questionary` instead of `PyInquirer`, to use the newer prompt_toolkit.
 
 
 

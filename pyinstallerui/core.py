@@ -7,9 +7,9 @@ from pathlib import Path
 from subprocess import PIPE, Popen, list2cmdline
 from urllib.request import urlopen
 
-from PyInquirer import prompt
+import questionary
 
-__version__ = '0.1.1'
+__version__ = '0.2.0'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -235,12 +235,8 @@ class Venv(object):
         os.system(cmd)
 
     def ask_if_install_pyinstaller(self):
-        need_install = prompt({
-            'type': 'confirm',
-            'name': 'name',
-            'message': '`PyInstaller` not found, do you want to install it?',
-            'default': True
-        })['name']
+        need_install = questionary.confirm(
+            '`PyInstaller` not found, do you want to install it?', default=True)
         if need_install:
             self.install_pyinstaller()
 
@@ -262,22 +258,16 @@ def prepare_venv():
     print(f'[Venv path]: {venvs.GLOBAL_VENV_PATH}\n{"-" * 40}')
     while 1:
         choices = [new_venv, rm_venv, exit_choice] + venvs.list_venvs()
-        name = prompt({
-            'type': 'list',
-            'name': 'name',
-            'message': 'Choose a venv by name, or create a new one:',
-            'choices': choices
-        })['name']
+        name = questionary.select(
+            'Choose a venv by name, or create a new one:',
+            choices=choices).ask()
         if name == exit_choice:
             break
         elif name == rm_venv:
             while 1:
-                name = prompt({
-                    'type': 'list',
-                    'name': 'name',
-                    'message': 'Choose a name to remove:',
-                    'choices': ['[Exit]'] + venvs.list_venvs()
-                })['name']
+                name = questionary.select(
+                    'Choose a name to remove:',
+                    choices=['[Exit]'] + venvs.list_venvs()).ask()
                 if name == '[Exit]':
                     break
                 print('Venv Removing...')
@@ -287,11 +277,7 @@ def prepare_venv():
         else:
             if name == new_venv:
                 venvs.rm_venv(name)
-                name = prompt({
-                    'type': 'input',
-                    'name': 'name',
-                    'message': 'Input the venv name:',
-                })['name'].strip()
+                name = input('Input the venv name:\n').strip()
                 venv = Venv.create_venv(name)
             else:
                 venv = Venv(name)
@@ -308,34 +294,24 @@ def prepare_pip(venv):
     if not venv.check_pyinstaller():
         venv.ask_if_install_pyinstaller()
     while 1:
-        action = prompt({
-            'type': 'list',
-            'name': 'name',
-            'message': 'Choose action of `pip`:',
-            'choices': venv.pip_action_choices
-        })['name']
+        action = questionary.select(
+            'Choose action of `pip`:', choices=venv.pip_action_choices).ask()
         index = venv.pip_action_choices.index(action)
         if index == 0:
             break
         elif index == 1:
             while 1:
-                cmd = prompt({
-                    'type': 'input',
-                    'name': 'name',
-                    'message': 'Fill text for `pip install ` (null for exit):',
-                    'default': 'pip install '
-                })['name']
+                cmd = questionary.text(
+                    "Fill text for `pip install ` (null for exit):",
+                    default='pip install ').ask()
                 if cmd == 'pip install ':
                     break
                 venv.pip_install(cmd=cmd)
         elif index == 2:
             while 1:
-                cmd = prompt({
-                    'type': 'input',
-                    'name': 'name',
-                    'message': 'Fill text for `pip uninstall -y ` (null for exit):',
-                    'default': 'pip uninstall -y '
-                })['name']
+                cmd = questionary.text(
+                    "Fill text for `pip uninstall -y ` (null for exit):",
+                    default='pip uninstall -y ').ask()
                 if cmd == 'pip uninstall -y ':
                     break
                 venv.pip_uninstall(cmd=cmd)
@@ -343,42 +319,29 @@ def prepare_pip(venv):
             venv.pip_list()
         elif index == 4:
             while 1:
-                cmd = prompt({
-                    'type': 'input',
-                    'name': 'name',
-                    'message': 'Fill text for `pip ` (null for exit):',
-                    'default': 'pip '
-                })['name']
+                cmd = questionary.text(
+                    "Fill text for `pip ` (null for exit):",
+                    default='pip ').ask()
                 if cmd == 'pip ':
                     break
                 venv.pip_custom(cmd=cmd)
 
 
 def ask_script_cwd_path(venv, script_path, cwd):
-    script_path = prompt({
-        'type': 'input',
-        'name': 'name',
-        'message': 'Input python script path (null to Exit):',
-        'default': str(script_path),
-    })['name'].strip()
+    script_path = questionary.text(
+        "Input python script path (null to Exit):",
+        default=str(script_path)).ask().strip()
     if not script_path:
         return [None, None]
     script_path = strip_quote(script_path)
     script_path = Path(script_path)
 
-    cwd = prompt({
-        'type': 'list',
-        'name': 'name',
-        'message': 'Choose the cwd path:',
-        'choices': [str(CWD), str(script_path.parent), '[Custom CWD]']
-    })['name']
+    cwd = questionary.select(
+        'Choose the cwd path:',
+        choices=[str(CWD), str(script_path.parent), '[Custom CWD]']).ask()
     if cwd == '[Custom CWD]':
-        cwd = prompt({
-            'type': 'input',
-            'name': 'name',
-            'message': 'Input cwd path:',
-            'default': str(cwd),
-        })['name'].strip()
+        cwd = questionary.text(
+            "Input cwd path:", default=str(cwd)).ask().strip()
     cwd = strip_quote(cwd)
     cwd = Path(cwd)
     return script_path, cwd
@@ -392,12 +355,9 @@ def ask_for_args(venv, script_path, cwd, cache_path):
         cache_path_str
     ]
     # app name
-    appname = prompt({
-        'type': 'input',
-        'name': 'name',
-        'message': 'App name (default to the script name):',
-        'default': re.sub(r'.pyw?$', '', script_path.name)
-    })['name'].strip()
+    appname = questionary.text(
+        "App name (default to the script name):",
+        default=re.sub(r'.pyw?$', '', script_path.name)).ask().strip()
     args.extend(['--name', appname])
     # check if want to set
     choices = []
@@ -407,34 +367,23 @@ def ask_for_args(venv, script_path, cwd, cache_path):
             'checked': value.get('checked', False)
         }
         choices.append(item)
-    tmp = prompt({
-        'type': 'checkbox',
-        'message': 'Select the options to change:',
-        'name': 'name',
-        'choices': choices
-    })['name']
+    tmp = questionary.checkbox(
+        'Select the options to change:', choices=choices).ask()
     for choice in tmp:
         key = choice.split(' | ')[0].strip()
         item = PYINSTALLER_KWARGS[key]
         if item['type'] == bool:
             args.append(key)
         elif item['type'] == str:
-            value = prompt({
-                'type': 'input',
-                'name': 'name',
-                'message': f'Input the {key} arg:\n{item["msg"]}\n',
-            })['name'].strip()
+            value = input(f'Input the {key} arg:\n{item["msg"]}\n').strip()
             if value:
                 value = strip_quote(value)
                 args.append(key)
                 args.append(value)
         elif key == '[Custom]':
             while 1:
-                value = prompt({
-                    'type': 'input',
-                    'name': 'name',
-                    'message': f'Input the args one by one (null to exit):\n',
-                })['name'].strip()
+                value = input(
+                    'Input the args one by one (null to exit):\n').strip()
                 if not value:
                     break
                 args.append(value)
@@ -458,12 +407,9 @@ def prepare_test_pyinstaller(venv):
         if not cwd.is_dir():
             print('[Error] cwd path should be a dir')
             continue
-        choice = prompt({
-            'type': 'list',
-            'name': 'name',
-            'message': 'Choose a action for python script:',
-            'choices': ['Test', 'Build', 'Exit']
-        })['name']
+        choice = questionary.select(
+            'Choose a action for python script:',
+            choices=['Test', 'Build', 'Exit']).ask()
         if choice == 'Exit':
             break
         elif choice == 'Test':
@@ -483,27 +429,14 @@ def prepare_test_pyinstaller(venv):
             print_sep()
             print(f'Building python script at {cwd}:\n{list2cmdline(args)}')
             run(args, cwd=cwd)
-            clean = prompt({
-                'type': 'confirm',
-                'message': 'Clean the cache files?',
-                'name': 'name',
-                'default': False,
-            })['name']
+            clean = questionary.confirm(
+                "Clean the cache files?", default=False).ask()
             if clean:
                 clean_folder(cache_path)
-        is_quit = prompt({
-            'type': 'confirm',
-            'message': 'Quit?',
-            'name': 'name',
-            'default': True,
-        })['name']
+        is_quit = questionary.confirm("Quit?", default=True).ask()
         if is_quit:
-            is_del_venv = prompt({
-                'type': 'confirm',
-                'message': f'Remove the `{venv.name}` venv?',
-                'name': 'name',
-                'default': False,
-            })['name']
+            is_del_venv = questionary.confirm(
+                f'Remove the `{venv.name}` venv?', default=False).ask()
             if is_del_venv:
                 Venvs.rm_venv(venv.name)
             quit()
