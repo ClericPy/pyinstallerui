@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 import questionary
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -278,6 +278,9 @@ def prepare_venv():
             if name == new_venv:
                 venvs.rm_venv(name)
                 name = input('Input the venv name:\n').strip()
+                if not name:
+                    print(f'Name can not be null.')
+                    continue
                 venv = Venv.create_venv(name)
             else:
                 venv = Venv(name)
