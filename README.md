@@ -1,5 +1,5 @@
 
-# PyinstallerUI v0.2.1
+# PyinstallerUI [![PyPI](https://img.shields.io/pypi/v/pyinstallerui?style=plastic)](https://pypi.org/project/pyinstallerui/)![PyPI - Wheel](https://img.shields.io/pypi/wheel/pyinstallerui?style=plastic)![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyinstallerui?style=plastic)![PyPI - Downloads](https://img.shields.io/pypi/dm/pyinstallerui?style=plastic)![PyPI - License](https://img.shields.io/pypi/l/pyinstallerui?style=plastic)
 
 Let everyone is able to build python script to exe with pyinstaller, without any doc reading, support python3.7+.
 
