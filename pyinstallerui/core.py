@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 import questionary
 
-__version__ = '0.2.1'
+from . import __version__
 
 CURRENT_PYTHON_PATH = sys.executable
 IS_WIN = 'Windows' in platform.platform()
@@ -129,9 +129,14 @@ class Venv(object):
         'Custom(input raw `pip` command)'
     ]
 
-    def __init__(self, name):
+    def __init__(self, name=None):
         self.name = name
-        self.venv_path = Venvs.GLOBAL_VENV_PATH / name
+        if name:
+            self.venv_path = Venvs.GLOBAL_VENV_PATH / name
+        else:
+            self.venv_path = Venvs.GLOBAL_VENV_PATH / 'tmp'
+            if not self.venv_path.is_dir():
+                self.venv_path.mkdir()
 
     @property
     def bin_path(self):
@@ -160,6 +165,8 @@ class Venv(object):
             return self.venv_path / 'bin'
 
     def get_python_path(self, bin_path=None):
+        if not self.name:
+            return Path(CURRENT_PYTHON_PATH)
         bin_path = bin_path or self.get_bin_path()
         if IS_WIN:
             return bin_path / 'python.exe'
@@ -236,7 +243,8 @@ class Venv(object):
 
     def ask_if_install_pyinstaller(self):
         need_install = questionary.confirm(
-            '`PyInstaller` not found, do you want to install it?', default=True)
+            '`PyInstaller` not found, do you want to install it?',
+            default=True).ask()
         if need_install:
             self.install_pyinstaller()
 
@@ -438,21 +446,26 @@ def prepare_test_pyinstaller(venv):
                 clean_folder(cache_path)
         is_quit = questionary.confirm("Quit?", default=True).ask()
         if is_quit:
-            is_del_venv = questionary.confirm(
-                f'Remove the `{venv.name}` venv?', default=False).ask()
-            if is_del_venv:
-                Venvs.rm_venv(venv.name)
+            if venv.name:
+                is_del_venv = questionary.confirm(
+                    f'Remove the `{venv.name}` venv?', default=False).ask()
+                if is_del_venv:
+                    Venvs.rm_venv(venv.name)
             quit()
 
 
 def _main():
     print(f'{"=" * 40}\nPyinstaller UI v{__version__}\n{"=" * 40}')
-    # Prepare for venv
-    venv = prepare_venv()
-    if not venv:
-        return
-    # Prepare for pip
-    prepare_pip(venv)
+    use_venv = questionary.confirm('Use venv?', default=False).ask()
+    if use_venv:
+        # Prepare for venv
+        venv = prepare_venv()
+        if not venv:
+            return
+        # Prepare for pip
+        prepare_pip(venv)
+    else:
+        venv = Venv()
     # Prepare for PyInstaller / python test
     prepare_test_pyinstaller(venv)
     return venv
