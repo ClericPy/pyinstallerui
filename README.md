@@ -7,7 +7,8 @@ Let everyone is able to build python script to exe with pyinstaller, without any
 
 ## Features
 
-- [x] Auto manage the venv to reduce the file size which disted by pyinstaller
+- [x] ~~Auto manage the venv to reduce the file size which disted by pyinstaller~~
+  - [x] Choose venv or global env, for building without venv will not take up more space after the newest version of **pyinstaller**
 - [x] Ensure pip installed in the venvs
 - [x] Terminal UI for pyinstaller
 - [x] Release on the pypi
