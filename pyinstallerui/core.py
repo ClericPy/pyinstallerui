@@ -2,9 +2,8 @@ import os
 import platform
 import re
 import sys
-from itertools import chain
 from pathlib import Path
-from subprocess import PIPE, Popen, list2cmdline
+from subprocess import PIPE, STDOUT, Popen, list2cmdline
 from urllib.request import urlopen
 
 import questionary
@@ -31,6 +30,10 @@ PYINSTALLER_KWARGS = {
     '--windowed': {
         'type': bool,
         'msg': 'Run without console.',
+    },
+    '--runtime-tmpdir': {
+        'type': str,
+        'msg': 'Where to extract libraries and support files in onefile-mode.',
     },
     '--distpath': {
         'type': str,
@@ -94,9 +97,9 @@ def strip_quote(path):
 
 
 def run(args, timeout=60, print_output=True, **kwargs):
-    proc = Popen(args=args, stdout=PIPE, stderr=PIPE, **kwargs)
+    proc = Popen(args=args, stdout=PIPE, stderr=STDOUT, **kwargs)
     output = []
-    for line in chain(proc.stdout, proc.stderr):
+    for line in proc.stdout:
         line = line.decode().strip()
         output.append(line)
         if print_output:
@@ -266,16 +269,15 @@ def prepare_venv():
     print(f'[Venv path]: {venvs.GLOBAL_VENV_PATH}\n{"-" * 40}')
     while 1:
         choices = [new_venv, rm_venv, exit_choice] + venvs.list_venvs()
-        name = questionary.select(
-            'Choose a venv by name, or create a new one:',
-            choices=choices).ask()
+        name = questionary.select('Choose a venv by name, or create a new one:',
+                                  choices=choices).ask()
         if name == exit_choice:
             break
         elif name == rm_venv:
             while 1:
-                name = questionary.select(
-                    'Choose a name to remove:',
-                    choices=['[Exit]'] + venvs.list_venvs()).ask()
+                name = questionary.select('Choose a name to remove:',
+                                          choices=['[Exit]'] +
+                                          venvs.list_venvs()).ask()
                 if name == '[Exit]':
                     break
                 print('Venv Removing...')
@@ -305,8 +307,8 @@ def prepare_pip(venv):
     if not venv.check_pyinstaller():
         venv.ask_if_install_pyinstaller()
     while 1:
-        action = questionary.select(
-            'Choose action of `pip`:', choices=venv.pip_action_choices).ask()
+        action = questionary.select('Choose action of `pip`:',
+                                    choices=venv.pip_action_choices).ask()
         index = venv.pip_action_choices.index(action)
         if index == 0:
             break
@@ -330,18 +332,16 @@ def prepare_pip(venv):
             venv.pip_list()
         elif index == 4:
             while 1:
-                cmd = questionary.text(
-                    "Fill text for `pip ` (null for exit):",
-                    default='pip ').ask()
+                cmd = questionary.text("Fill text for `pip ` (null for exit):",
+                                       default='pip ').ask()
                 if cmd == 'pip ':
                     break
                 venv.pip_custom(cmd=cmd)
 
 
 def ask_script_cwd_path(venv, script_path, cwd):
-    script_path = questionary.text(
-        "Input python script path (null to Exit):",
-        default=str(script_path)).ask().strip()
+    script_path = questionary.text("Input python script path (null to Exit):",
+                                   default=str(script_path)).ask().strip()
     if not script_path:
         return [None, None]
     script_path = strip_quote(script_path)
@@ -351,8 +351,8 @@ def ask_script_cwd_path(venv, script_path, cwd):
         'Choose the cwd path:',
         choices=[str(CWD), str(script_path.parent), '[Custom CWD]']).ask()
     if cwd == '[Custom CWD]':
-        cwd = questionary.text(
-            "Input cwd path:", default=str(cwd)).ask().strip()
+        cwd = questionary.text("Input cwd path:",
+                               default=str(cwd)).ask().strip()
     cwd = strip_quote(cwd)
     cwd = Path(cwd)
     return script_path, cwd
@@ -366,9 +366,9 @@ def ask_for_args(venv, script_path, cwd, cache_path):
         cache_path_str
     ]
     # app name
-    appname = questionary.text(
-        "App name (default to the script name):",
-        default=re.sub(r'.pyw?$', '', script_path.name)).ask().strip()
+    appname = questionary.text("App name (default to the script name):",
+                               default=re.sub(r'.pyw?$', '',
+                                              script_path.name)).ask().strip()
     args.extend(['--name', appname])
     # check if want to set
     choices = []
@@ -378,8 +378,8 @@ def ask_for_args(venv, script_path, cwd, cache_path):
             'checked': value.get('checked', False)
         }
         choices.append(item)
-    tmp = questionary.checkbox(
-        'Select the options to change:', choices=choices).ask()
+    tmp = questionary.checkbox('Select the options to change:',
+                               choices=choices).ask()
     for choice in tmp:
         key = choice.split(' | ')[0].strip()
         item = PYINSTALLER_KWARGS[key]
@@ -418,9 +418,8 @@ def prepare_test_pyinstaller(venv):
         if not cwd.is_dir():
             print('[Error] cwd path should be a dir')
             continue
-        choice = questionary.select(
-            'Choose a action for python script:',
-            choices=['Test', 'Build', 'Exit']).ask()
+        choice = questionary.select('Choose a action for python script:',
+                                    choices=['Test', 'Build', 'Exit']).ask()
         if choice == 'Exit':
             break
         elif choice == 'Test':
@@ -440,8 +439,8 @@ def prepare_test_pyinstaller(venv):
             print_sep()
             print(f'Building python script at {cwd}:\n{list2cmdline(args)}')
             run(args, cwd=cwd)
-            clean = questionary.confirm(
-                "Clean the cache files?", default=False).ask()
+            clean = questionary.confirm("Clean the cache files?",
+                                        default=False).ask()
             if clean:
                 clean_folder(cache_path)
         is_quit = questionary.confirm("Quit?", default=True).ask()
@@ -455,7 +454,9 @@ def prepare_test_pyinstaller(venv):
 
 
 def _main():
-    print(f'{"=" * 40}\nPyinstaller UI v{__version__}\n{"=" * 40}')
+    print(
+        f'{"=" * 40}\nPyinstaller UI v{__version__}\n{"=" * 40}\nThe boolean options below do not need ENTER.'
+    )
     use_venv = questionary.confirm('Use venv?', default=False).ask()
     if use_venv:
         # Prepare for venv
